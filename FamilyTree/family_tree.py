@@ -4,10 +4,12 @@
 ###########################################################
 
 from .entity import Entity
+from .helpers import Response
 
 
 class FamilyTree:
     __family_tree = {}
+    __response = Response()
 
     @classmethod
     def isSuitable(cls, name):
@@ -21,7 +23,14 @@ class FamilyTree:
         valid_gender = cls.__family_tree[name].isFemale()
         valid_spouse = cls.__family_tree[name].getSpouse() is not None
 
-        return valid_entity and valid_gender and valid_spouse
+        if not valid_entity:
+            return cls.__response.errorHandler(case='invalid_entity')
+        elif not valid_gender:
+            return cls.__response.errorHandler(case='invalid_gender')
+        elif not valid_spouse:
+            return cls.__response.errorHandler(case='invalid_spouse')
+        else:
+            return True
 
     @classmethod
     def createEntity(cls, name, gender, mother=None):

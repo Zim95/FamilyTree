@@ -5,10 +5,12 @@ sys.path.insert(
     0,
     os.path.abspath(
         os.path.join(
-            os.path.dirname(__file__),
+            os.path.dirname("__file__"),
             '..'
         )
     )
 )
 
-import FamilyTree
+from FamilyTree import entity
+from FamilyTree import family_tree
+from FamilyTree import helpers
