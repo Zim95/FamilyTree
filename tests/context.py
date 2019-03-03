@@ -11,6 +11,9 @@ sys.path.insert(
     )
 )
 
-from FamilyTree import entity
-from FamilyTree import family_tree
-from FamilyTree import helpers
+from FamilyTree import (
+    entity,
+    family_tree,
+    helpers,
+    reader
+)

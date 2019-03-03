@@ -1,3 +1,7 @@
+# HELPER MODULES #
+import re
+
+
 class Response:
     def __init__(self):
         self.__error_case = {
@@ -31,3 +35,31 @@ class Response:
             return self.__success_case[case]
         else:
             return self.errorHandler(case='unexpected_behaviour')
+
+
+class RegularExpressions:
+    def __init__(self):
+        self.strvalue = "^[^\s^\t]+$"
+        self.arrvalue = "^[\S,?]+"
+        self.gender = "(Male|Female)"
+    
+    def testStr(self, value):
+        if re.search(self.strvalue, value):
+            return True
+        else:
+            raise ValueError("Improper Value")
+    
+    def testGender(self, value):
+        if re.search(self.gender, value):
+            return True
+        else:
+            raise ValueError("Gender can only be: Male or Female")
+    
+    def testEntity(self, value):
+        if value is None or self.testStr(value):
+            return True
+        else:
+            raise ValueError("Entity can be None or a valid String")
+    
+    def testArr(self, value):
+        return re.search(self.arrvalue, value)

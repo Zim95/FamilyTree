@@ -13,12 +13,16 @@ class FamilyTree:
 
     @classmethod
     def isSuitable(cls, name):
-        # this method decides if an entity 
-        # is suitable to have children or not
-        # Passing conditions:
-        # 1. Should be a valid entity
-        # 2. Should be female
-        # 3. Should have a spouse
+        """
+        this method decides if an entity
+        is suitable to have children or not
+
+        Passing conditions:
+        1. Should be a valid entity
+        2. Should be female
+        3. Should have a spouse
+
+        """
         valid_entity = name in cls.__family_tree
         valid_gender = cls.__family_tree[name].isFemale()
         valid_spouse = cls.__family_tree[name].getSpouse() is not None

@@ -4,13 +4,15 @@
 # With its private data members                           #
 # That will only interact through GETTER & SETTER methods #  
 ###########################################################
+from .helpers import RegularExpressions
 
 
 class Entity:
     def __init__(self, name, gender, mother=None):
-        self.__name = name
-        self.__gender = gender
-        self.__mother = mother
+        self.regex = RegularExpressions()
+        self.__name = name if self.regex.testStr(name) else None
+        self.__gender = gender if self.regex.testGender(gender) else None
+        self.__mother = mother if self.regex.testEntity(mother) else None
         self.__father = None
         self.__spouse = None
         self.__son = []
