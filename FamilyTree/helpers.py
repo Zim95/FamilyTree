@@ -7,8 +7,11 @@ class Response:
         self.__error_case = {
             'invalid_entity': 'PERSON_NOT_FOUND',
             'invalid_gender': 'CHILD_ADDITION_FAILED',
+            'invalid_spouse_gender': 'SPOUSE_ADDITION_FAILED',
             'invalid_spouse': 'PERSON_NOT_MARRIED',
+            'invalid_couple': 'ENTITY_ALREADY_MARRIED',
             'duplicate_name': 'DUPLICATE_PERSON_NAME',
+            'is_sibling': 'ENTITIES_ARE_SIBLINGS',
             'no_items': 'NONE',
             'unexpected_behaviour': 'UNEXPECTED_BEHAVIOUR',
             'default': 'FAILURE'
@@ -60,6 +63,3 @@ class RegularExpressions:
             return True
         else:
             raise ValueError("Entity can be None or a valid String")
-    
-    def testArr(self, value):
-        return re.search(self.arrvalue, value)

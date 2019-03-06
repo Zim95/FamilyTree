@@ -1,0 +1,13 @@
+A Huge thanks to GeekTrust, for the awesome guidance:
+
+I know it may be unncesessary, but I wanted to thank Geektrust for giving me major guidelines.
+
+- The code is still a bit messy but I tried my best to improve it as much as I could.
+- Tried learning unit tests and tried implementing a bit. (Tried Mock tests but failed for now).
+- Learned how to package my code better.
+- Tried my best to avoid speghetti code this time around.
+- And most importantly, I got to know what to learn next.
+
+Thank you, this was an amazing experience.
+
+Namah

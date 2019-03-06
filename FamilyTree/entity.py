@@ -42,16 +42,16 @@ class Entity:
     
     # SETTER METHODS
     def setFather(self, value):
-        self.__father = value
+        self.__father = value if self.regex.testEntity(value) else None
 
     def setSpouse(self, value):
-        self.__spouse = value
+        self.__spouse = value if self.regex.testEntity(value) else None
     
     def setSon(self, value):
-        self.__son += value
+        self.__son += [value] if self.regex.testEntity(value) else None
     
     def setDaughter(self, value):
-        self.__daughter += value
+        self.__daughter += [value] if self.regex.testEntity(value) else None
 
     def isFemale(self):
         return self.getGender() == "Female"
