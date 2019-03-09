@@ -42,17 +42,48 @@ class Entity:
     
     # SETTER METHODS
     def setFather(self, value):
+        isDuplicate = self.isNotDuplicate(value)
+        if isDuplicate != "OK":
+            raise ValueError("Father {}".format(isDuplicate))
         self.__father = value if self.regex.testEntity(value) else None
 
     def setSpouse(self, value):
+        isDuplicate = self.isNotDuplicate(value)
+        if isDuplicate != "OK":
+            raise ValueError("Father {}".format(isDuplicate))
         self.__spouse = value if self.regex.testEntity(value) else None
     
     def setSon(self, value):
+        isDuplicate = self.isNotDuplicate(value)
+        if isDuplicate != "OK":
+            raise ValueError("Father {}".format(isDuplicate))
         self.__son += [value] if self.regex.testEntity(value) else None
     
     def setDaughter(self, value):
+        isDuplicate = self.isNotDuplicate(value)
+        if isDuplicate != "OK":
+            raise ValueError("Father {}".format(isDuplicate))
         self.__daughter += [value] if self.regex.testEntity(value) else None
 
+    # HELPER METHODS
     def isFemale(self):
         return self.getGender() == "Female"
     
+    def isNotDuplicate(self, value):
+        if value == self.__name:
+            return "has the same name as entity"
+        elif value == self.__mother:
+            return "has the same name as entity's mother"
+        elif value == self.__father:
+            return "has the same name as entity's father"
+        elif value == self.__spouse:
+            return "has the same name as entity's spouse"
+        elif value in self.__son:
+            return "has the same name as entity's son(s)"
+        elif value in self.__daughter:
+            return "has the same name as entity's daughter(s)"
+        else:
+            return "OK"
+    
+    def isUnmarried(self):
+        return self.__spouse is None

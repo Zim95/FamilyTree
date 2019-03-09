@@ -72,33 +72,44 @@ class TestEntity(unittest.TestCase):
         self.assertRaises(TypeError, entity1.setFather, 1)
         self.assertRaises(TypeError, entity1.setFather, 1.0)
         self.assertRaises(ValueError, entity1.setFather, "A B")
-        # b. Test for proper set values
-        entity1.setFather("A")
-        self.assertEqual(entity1.getFather(), "A")
+        # b. Test for proper set values and duplicates
+        self.assertRaises(ValueError, entity1.setFather, "A")
+        entity1.setFather("C")
+        self.assertEqual(entity1.getFather(), "C")
 
         # test set Spouse:
         # a. Test for proper values
         self.assertRaises(TypeError, entity1.setSpouse, 1)
         self.assertRaises(TypeError, entity1.setSpouse, 1.0)
         self.assertRaises(ValueError, entity1.setSpouse, "A B")
-        # b. Test for proper set values
-        entity1.setSpouse("A")
-        self.assertEqual(entity1.getSpouse(), "A")
+        # b. Test for proper set values and duplicates
+        self.assertRaises(ValueError, entity1.setSpouse, "C")
+        entity1.setSpouse("D")
+        self.assertEqual(entity1.getSpouse(), "D")
 
         # test set Son:
         # a. Test for proper values
         self.assertRaises(TypeError, entity1.setSon, 1)
         self.assertRaises(TypeError, entity1.setSon, 1.0)
         self.assertRaises(ValueError, entity1.setSon, "A B")
-        # b. Test for proper set values
-        entity1.setSon("A")
-        self.assertEqual(entity1.getSon(), ["A"])
+        # b. Test for proper set values and duplicates
+        self.assertRaises(ValueError, entity1.setSon, "D")
+        entity1.setSon("E")
+        self.assertRaises(ValueError, entity1.setSon, "E")
+        entity1.setSon("F")
+        self.assertEqual(entity1.getSon(), ["E", "F"])
 
         # test set Daughter:
         # a. Test for proper values
         self.assertRaises(TypeError, entity1.setDaughter, 1)
         self.assertRaises(TypeError, entity1.setDaughter, 1.0)
         self.assertRaises(ValueError, entity1.setDaughter, "A B")
-        # b. Test for proper set values
-        entity1.setDaughter("A")
-        self.assertEqual(entity1.getDaughter(), ["A"])
+        # b. Test for proper set values and duplicates
+        self.assertRaises(ValueError, entity1.setDaughter, "F")
+        entity1.setDaughter("G")
+        self.assertRaises(ValueError, entity1.setDaughter, "G")
+        entity1.setDaughter("H")
+        self.assertEqual(entity1.getDaughter(), ["G", "H"])
+
+    def testHelperMethod(self):
+        pass

@@ -35,6 +35,12 @@ class FamilyTree:
             return True
 
     @classmethod
+    def isUnmarried(cls, name):
+        if name is None:
+            raise ValueError("Invalid Entity")
+        return cls.__family_tree[name].getSpouse() is None
+
+    @classmethod
     def isSibling(cls, name, value):
         """
       
@@ -54,6 +60,8 @@ class FamilyTree:
             - They are siblings: return True
         4. If both their parents have different names.
             - They are not siblings: return False
+        
+        NOTE: Raise error upon NONE values
 
         """
         entity_mother = cls.__family_tree[name].getMother()
@@ -74,7 +82,9 @@ class FamilyTree:
         elif entity_mother != spouse_mother and entity_father != spouse_father:
             return False
         else:
-            return cls.__response.errorHandler('unexpected_behaviour')
+            raise ValueError(
+                cls.__response.errorHandler('unexpected_behaviour')
+            )
 
     @classmethod
     def isSuitableSpouse(cls, name, value):
@@ -88,31 +98,18 @@ class FamilyTree:
         5. They both need to be unmarried
 
         """
-        valid_name = name != value
-        
-        valid_entity = name in cls.__family_tree
-        valid_spouse = value in cls.__family_tree
-        valid_members = valid_entity and valid_spouse
 
-        entity_gender = cls.__family_tree[name].getGender()
-        spouse_gender = cls.__family_tree[value].getGender()
-        valid_gender = entity_gender != spouse_gender
+        ftree = cls.__family_tree
 
-        is_sibling = cls.isSibling(name, value)
-
-        entity_spouse = cls.__family_tree[name].getSpouse()
-        spouse_spouse = cls.__family_tree[name].getSpouse()
-        valid_couple = entity_spouse is None and spouse_spouse is None
-
-        if not valid_name:
+        if name == value:
             return cls.__response.errorHandler(case='duplicate_name')
-        elif not valid_members:
+        elif name not in ftree or value not in ftree:
             return cls.__response.errorHandler(case='invalid_entity')
-        elif not valid_gender:
+        elif ftree[name].getGender() == ftree[value].getGender():
             return cls.__response.errorHandler(case='invalid_spouse_gender')
-        elif is_sibling:
+        elif cls.isSibling(name, value) is True:
             return cls.__response.errorHandler(case="is_sibling")
-        elif not valid_couple:
+        elif not ftree[name].isUnmarried() or not ftree[value].isUnmarried():
             return cls.__response.errorHandler(case="invalid_couple")
         else:
             return True
@@ -134,7 +131,7 @@ class FamilyTree:
             cls.__family_tree[mother].setDaughter(name)
             cls.__family_tree[father].setDaughter(name)
         else:
-            raise ValueError("Gender can only be either male or female")
+            raise ValueError("Gender can only be either 'Male' or 'Female'")
 
     @classmethod
     def createEntity(cls, name, gender, mother=None):
@@ -157,7 +154,9 @@ class FamilyTree:
         
         entity_object = Entity(name, gender, mother=mother)
 
-        if mother is None:
+        if name in cls.__family_tree:
+            return cls.__response.errorHandler('duplicate_name')
+        elif mother is None:
             cls.__family_tree[name] = entity_object
         elif cls.isSuitableMother(mother) is True:
             father = cls.__family_tree[mother].getSpouse()
