@@ -22,113 +22,197 @@ class TestFamilyTree(unittest.TestCase):
         return mock
 
     def test_isSuitableMother(self):
-        # first create an entity and set values accordingly.
-        
-        # a valid entity
-        entity1 = entity.Entity("A", "Female")
-        entity1.setSpouse("B")
-
-        # an invalid entity with no spouse
-        entity2 = entity.Entity("C", "Female")
-
-        # an invalid entity with wrong gender
-        entity3 = entity.Entity("D", "Male")
-
         mock = self.getMock()
-        
-        # Now create a mock of the method you want to test
-        mock.test_isSuitableMother = family_tree.FamilyTree.isSuitableMother
-        
-        # set values to the family_tree variable
-        mock.__family_tree['A'] = entity1
-        mock.__family_tree['B'] = entity2
-        mock.__family_tree['D'] = entity3
-        
-        # now test with assert
-        self.assertEqual(mock.test_isSuitableMother('A'), True)
-        self.assertEqual(mock.test_isSuitableMother('B'), "PERSON_NOT_MARRIED")
-        self.assertEqual(mock.test_isSuitableMother('D'), "CHILD_ADDITION_FAILED")
 
-    def test_isSuitableSpouse(self):
+        mock.test_isSuitableMother = family_tree.FamilyTree.isSuitableMother
+
+        mock.entity.isFemale.side_effect = [
+            False,
+            True,
+            True
+        ]
+
+        mock.entity.getSpouse.side_effect = [
+            None,
+            'B'
+        ]
+
+        mock.__family_tree['A'] = mock.entity
+
+        self.assertEqual(
+            mock.test_isSuitableMother('C'),
+            'PERSON_NOT_FOUND'
+        )
+        self.assertEqual(
+            mock.test_isSuitableMother('A'),
+            "CHILD_ADDITION_FAILED"
+        )
+        self.assertEqual(
+            mock.test_isSuitableMother('A'),
+            "PERSON_NOT_MARRIED"
+        )
+        self.assertEqual(mock.test_isSuitableMother('A'), True)
+
+    def test_isUnmarried(self):
+        mock = self.getMock()
+
+        mock.test_isUnmarried = family_tree.FamilyTree.isUnmarried
+
+        mock.entity.getSpouse.side_effect = [
+            'None',
+            None
+        ]
+
+        mock.__family_tree['A'] = mock.entity
+
+        # ERROR: None Value
+        self.assertRaises(
+            ValueError,
+            mock.test_isUnmarried,
+            None
+        )
+        # ERROR: Entity does not exist
+        self.assertRaises(
+            ValueError,
+            mock.test_isUnmarried,
+            'C'
+        )
+        # False: Entity's spouse is not None 
+        self.assertEqual(
+            mock.test_isUnmarried('A'),
+            False
+        )
+        # True:  Entity's spouse is None 
+        self.assertEqual(
+            mock.test_isUnmarried('A'),
+            True
+        )
+
+    @patch.object(family_tree.FamilyTree, 'isSibling')
+    def test_isSuitableSpouse(self, isSibling):
         mock = self.getMock()
         
         mock.test_isSuitableSpouse = family_tree.FamilyTree.isSuitableSpouse
 
-        mock.isSibling = family_tree.FamilyTree.isSibling
-        # now set the value of getgender and isUnmarried
-        # and test the results
-
-        # a. CASE: ACCEPTED
-        # NOTE: side effects are just a way of providing multiple values
-        #       to a function. One value is used as return value for one call.
-        mock.return_value.isSibling.return_value = False
-        mock.entity.getGender.side_effect = ["Male", "Female"]
-        mock.entity.isUnmarried.side_effect = [True, True]
-        mock.entity.getMother.side_effect = ["Blah", "Baka"]
-        mock.entity.getFather.side_effect = ["Bruh", "Blyat"]
-       
+        # If we set isSibling to mock the original isSibling
+        # Then it will inturn call getFather and getMother methods
+        # To which we will have to set return values
+        # We want to avoid this
+        # Therefore it is advisable to create a class method in mock itself
+        # Rather than mock the isSibling method of the original class
+        # So that we can set a return value
+        # mock.isSibling = family_tree.FamilyTree.isSibling
+        # SOLUTION: So we patch the method using 'patch.object'
+        # NOTE: 
+        # 1. 'patch' will not work as that will only work for objects
+        #     and classes. For methods we need to use patch.method
+        # 2.  Side effects are just a way of providing multiple values
+        #     to a function. One value is used as return value for one call.
+        
+        isSibling.side_effect = [
+            True,
+            False,
+            False
+        ]
+        mock.entity.getGender.side_effect = [
+            "Male", "Male",
+            "Male", "Female",
+            "Male", "Female",
+            "Male", "Female"
+        ]
+        mock.entity.isUnmarried.side_effect = [
+            True, False,
+            True, True
+        ]
+    
         # testing the instance of entity
         # print(vars(mock.entity1))
-        # print(mock.entity.getGender()) # calling this will use up a side effect. So DO NOT
         
         mock.__family_tree["A"] = mock.entity
         mock.__family_tree["B"] = mock.entity
 
-        self.assertEqual(mock.test_isSuitableSpouse('A', 'B'), True)
+        # CASE: Rejected (Duplicate person name)
+        # Side effects used: None
+        self.assertEqual(
+            mock.test_isSuitableSpouse('A', 'A'),
+            'DUPLICATE_PERSON_NAME'
+        )
+        # CASE: Rejected (Invalid Entity)
+        # Side effects used: None
+        self.assertEqual(
+            mock.test_isSuitableSpouse('A', 'C'),
+            'PERSON_NOT_FOUND'
+        )
+        # CASE: Rejected (Same Spouse Gender)
+        # Side effects used: getGender-2
+        self.assertEqual(
+            mock.test_isSuitableSpouse('A', 'B'),
+            'SAME_SPOUSE_GENDER'
+        )
+        # CASE: Rejected (Entities are siblings)
+        # Side effects used: getGender-2, isSibling-1 
+        self.assertEqual(
+            mock.test_isSuitableSpouse('A', 'B'),
+            'ENTITIES_ARE_SIBLINGS'
+        )
+        # CASE: Rejected (Entities already married)
+        # Side effects used: getGender-2, isSibling-1, isUnmarried-2
+        self.assertEqual(
+            mock.test_isSuitableSpouse('A', 'B'),
+            'ENTITY_ALREADY_MARRIED'
+        )
+        # CASE: Accepted (Entities are suitable for marriage)
+        # Side effects used: getGender-2, isSibling-1, isUnmarried-2
+        self.assertEqual(
+            mock.test_isSuitableSpouse('A', 'B'),
+            True
+        )
 
-        # b. CASE: REJECTED (Unexpected behavior. i.e Same mother, different father)
-        # NOTE: side effects are just a way of providing multiple values
-        #       to a function. One value is used as return value for one call.
-        mock.return_value.isSibling.return_value = False
-        mock.entity.getGender.side_effect = ["Male", "Female"]
-        mock.entity.isUnmarried.side_effect = [True, True]
-        mock.entity.getMother.side_effect = ["Blah", "Blah"]
-        mock.entity.getFather.side_effect = ["Blah", "Bllleh"]
-       
-        # testing the instance of entity
-        # print(vars(mock.entity1))
-        # print(mock.entity.getGender()) # calling this will use up a side effect. So DO NOT
-        
+    def test_isSibling(self):
+        mock = self.getMock()
+
+        mock.test_isSibling = family_tree.FamilyTree.isSibling
+
+        mock.entity.getMother.side_effect = [
+            "Blah", "Blah",
+            "Blah", "Baka",
+            None, None,
+            None, None,
+            None, None,
+            "Blah", "Blah",
+            "Blyat", "Baka"
+        ]
+        mock.entity.getFather.side_effect = [
+            "Baka", "Baka",
+            "Bruh", "Blyat",
+            None, None,
+            "Bruh", "Bruh",
+            "Bruh", "Blyat",
+            None, None,
+            None, None
+        ]
+
         mock.__family_tree["A"] = mock.entity
         mock.__family_tree["B"] = mock.entity
 
-        self.assertRaises(ValueError, mock.test_isSuitableSpouse, 'A', 'B')
-
-        # c. CASE: REJECTED (Unexpected behavior. i.e Same father, different mother)
-        # NOTE: side effects are just a way of providing multiple values
-        #       to a function. One value is used as return value for one call.
-        mock.return_value.isSibling.return_value = False
-        mock.entity.getGender.side_effect = ["Male", "Female"]
-        mock.entity.isUnmarried.side_effect = [True, True]
-        mock.entity.getMother.side_effect = ["Blah", "Bleh"]
-        mock.entity.getFather.side_effect = ["Blah", "Blah"]
-       
-        # testing the instance of entity
-        # print(vars(mock.entity1))
-        # print(mock.entity.getGender()) # calling this will use up a side effect. So DO NOT
-        
-        mock.__family_tree["A"] = mock.entity
-        mock.__family_tree["B"] = mock.entity
-
-        self.assertRaises(ValueError, mock.test_isSuitableSpouse, 'A', 'B')
-
-        # d. CASE: ACCEPTED (Both are orphans)
-        # NOTE: side effects are just a way of providing multiple values
-        #       to a function. One value is used as return value for one call.
-        mock.return_value.isSibling.return_value = False
-        mock.entity.getGender.side_effect = ["Male", "Female"]
-        mock.entity.isUnmarried.side_effect = [True, True]
-        mock.entity.getMother.side_effect = [None, None]
-        mock.entity.getFather.side_effect = [None, None]
-       
-        # testing the instance of entity
-        # print(vars(mock.entity1))
-        # print(mock.entity.getGender()) # calling this will use up a side effect. So DO NOT
-        
-        mock.__family_tree["A"] = mock.entity
-        mock.__family_tree["B"] = mock.entity
-
-        self.assertEqual(mock.test_isSuitableSpouse('A', 'B'), True)
+        # same mother, same father: True (Entities are siblings)
+        self.assertEqual(mock.test_isSibling('A', 'B'), True)
+        # different parents: False (Entities have different parents)
+        self.assertEqual(mock.test_isSibling('A', 'B'), False)
+        # Orphans: False (Entities are orphans/Root Entities)
+        self.assertEqual(mock.test_isSibling('A', 'B'), False)
+        # Error: None Values
+        self.assertRaises(ValueError, mock.test_isSibling, None, None)
+        # Error: Invalid Values 
+        self.assertRaises(ValueError, mock.test_isSibling, "None", "None")
+        # Error: No mother, Same father 
+        self.assertRaises(ValueError, mock.test_isSibling, 'A', 'B')
+        # Error: No mother, Different father
+        self.assertRaises(ValueError, mock.test_isSibling, 'A', 'B'),
+        # Error: Same mother, No father
+        self.assertRaises(ValueError, mock.test_isSibling, 'A', 'B')
+        # Error: Different mother, No father
+        self.assertRaises(ValueError, mock.test_isSibling, 'A', 'B')
         
 if __name__ == "__main__":
     unittest.main()

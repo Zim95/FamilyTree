@@ -7,7 +7,7 @@ class Response:
         self.__error_case = {
             'invalid_entity': 'PERSON_NOT_FOUND',
             'invalid_gender': 'CHILD_ADDITION_FAILED',
-            'invalid_spouse_gender': 'SPOUSE_ADDITION_FAILED',
+            'invalid_spouse_gender': 'SAME_SPOUSE_GENDER',
             'invalid_spouse': 'PERSON_NOT_MARRIED',
             'invalid_couple': 'ENTITY_ALREADY_MARRIED',
             'duplicate_name': 'DUPLICATE_PERSON_NAME',

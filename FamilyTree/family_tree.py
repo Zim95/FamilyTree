@@ -5,6 +5,7 @@
 
 from .entity import Entity
 from .helpers import Response
+import inspect
 
 
 class FamilyTree:
@@ -29,14 +30,14 @@ class FamilyTree:
             return cls.__response.errorHandler(case='invalid_entity')
         elif not cls.__family_tree[name].isFemale():
             return cls.__response.errorHandler(case='invalid_gender')
-        elif not cls.__family_tree[name].getSpouse() is not None:
+        elif cls.__family_tree[name].getSpouse() is None:
             return cls.__response.errorHandler(case='invalid_spouse')
         else:
             return True
 
     @classmethod
     def isUnmarried(cls, name):
-        if name is None:
+        if name is None or name not in cls.__family_tree:
             raise ValueError("Invalid Entity")
         return cls.__family_tree[name].getSpouse() is None
 
@@ -61,22 +62,52 @@ class FamilyTree:
         4. If both their parents have different names.
             - They are not siblings: return False
         
-        NOTE: Raise error upon NONE values
+        NOTE: Raise error upon NONE and Invalid values
 
         """
+
+        if name is None and value is None:
+            raise ValueError(
+                """
+                Values cannot be None
+                """
+            )
+        elif name not in cls.__family_tree or value not in cls.__family_tree:
+            raise ValueError(
+                """
+                Invalid Entity values
+                """
+            )
+
         entity_mother = cls.__family_tree[name].getMother()
         entity_father = cls.__family_tree[name].getFather()
         spouse_mother = cls.__family_tree[value].getMother()
         spouse_father = cls.__family_tree[value].getFather()
 
-        if entity_mother is None and spouse_mother is None:
+        if all(v is None for v in [
+            entity_father,
+            entity_mother,
+            spouse_father,
+            spouse_mother
+        ]):
             return False
         elif entity_father is None and spouse_father is None:
             raise ValueError(
                 """
-                Entities can either have no Mother or both parents
+                Entities can either have no Mother and Father or both parents
                 """
             )
+        elif all(v is None for v in [
+            spouse_mother,
+            entity_mother
+        ]) and all(v is not None for v in[
+            entity_father,
+            spouse_father
+        ]):
+            raise ValueError(
+                cls.__response.errorHandler('unexpected_behaviour')
+            )
+
         elif entity_mother == spouse_mother and entity_father == spouse_father:
             return True
         elif entity_mother != spouse_mother and entity_father != spouse_father:
